@@ -1,0 +1,11 @@
+"use client";
+
+import { Building2, Mail, ShieldCheck, UserCircle2, Users } from "lucide-react";
+
+import { PageHeader } from "@/components/data-display/page-header";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSession } from "@/features/auth/session-provider";
+import { formatDate } from "@/lib/format";
+
+export function SalesProfile(){const session=useSession();return <div className="space-y-6"><PageHeader eyebrow="Akun" title="Profil saya" description="Informasi akun dan akses workspace aktif."/><div className="grid gap-4 lg:grid-cols-[.8fr_1.2fr]"><Card><CardContent className="flex flex-col items-center pt-8 text-center"><span className="grid size-20 place-items-center rounded-full bg-primary/10 text-primary"><UserCircle2 className="size-11"/></span><h2 className="mt-4 text-xl font-bold">{session.user.name}</h2><p className="mt-1 text-sm text-muted-foreground">{session.user.email}</p><Badge className="mt-4">Sales</Badge></CardContent></Card><Card><CardHeader><CardTitle>Detail akses</CardTitle></CardHeader><CardContent><dl className="space-y-5 text-sm"><div className="flex gap-3"><Mail className="size-5 text-primary"/><div><dt className="text-muted-foreground">Email login</dt><dd className="font-semibold">{session.user.email}</dd></div></div><div className="flex gap-3"><Building2 className="size-5 text-primary"/><div><dt className="text-muted-foreground">Perusahaan</dt><dd className="font-semibold">{session.company?.name??"—"}</dd></div></div><div className="flex gap-3"><Users className="size-5 text-primary"/><div><dt className="text-muted-foreground">Tim aktif</dt><dd className="font-semibold">{session.teams.map(team=>team.name).join(", ")||"Belum ditempatkan"}</dd></div></div><div className="flex gap-3"><ShieldCheck className="size-5 text-primary"/><div><dt className="text-muted-foreground">Langganan</dt><dd className="font-semibold capitalize">{session.subscription?.status??"Tidak tersedia"}</dd>{session.subscription?.trial_ends_at&&<p className="text-xs text-muted-foreground">Trial sampai {formatDate(session.subscription.trial_ends_at,session.company?.timezone)}</p>}</div></div></dl></CardContent></Card></div></div>}

@@ -1,0 +1,17 @@
+import { ArrowRight, BarChart3, CheckCircle2, ShieldCheck, Trophy } from "lucide-react";
+import Link from "next/link";
+
+import { PublicHeader } from "@/components/public-header";
+import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+const features = [
+  { icon: CheckCircle2, title: "Aktivitas tervalidasi", text: "Draft, ajukan, periksa, dan lacak alasan penolakan dalam alur yang jelas." },
+  { icon: Trophy, title: "Target & leaderboard", text: "Pencapaian hanya dihitung dari aktivitas yang telah disetujui supervisor." },
+  { icon: BarChart3, title: "Komisi transparan", text: "Fee produk, multiplier, dan insentif progresif tersimpan sebagai snapshot." },
+];
+
+export default function HomePage() {
+  return <div className="min-h-screen bg-background"><PublicHeader /><main><section className="surface-grid border-b"><div className="mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.08fr_.92fr] lg:items-center lg:py-28"><div><div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-semibold text-primary"><ShieldCheck className="size-4" />Satu data yang dipercaya seluruh tim</div><h1 className="max-w-3xl text-4xl font-black tracking-[-0.04em] sm:text-6xl">Kejar target tanpa debat angka.</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">Kelola aktivitas sales, validasi supervisor, target, leaderboard, dan perhitungan komisi dari satu workspace yang transparan.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link className={cn(buttonVariants({ size: "lg" }))} href="/register">Mulai trial 3 hari <ArrowRight /></Link><Link className={cn(buttonVariants({ variant: "outline", size: "lg" }))} href="/pricing">Lihat paket</Link></div></div><div className="relative"><div className="absolute -inset-4 rounded-[2rem] bg-primary/10 blur-2xl" /><Card className="relative overflow-hidden p-6 shadow-xl"><p className="text-xs font-bold uppercase tracking-[.16em] text-muted-foreground">Ringkasan bulan ini</p><div className="mt-5 grid grid-cols-2 gap-3"><div className="rounded-xl bg-primary p-5 text-primary-foreground"><p className="text-xs opacity-80">Pencapaian tim</p><p className="mt-2 text-3xl font-black">112%</p></div><div className="rounded-xl bg-secondary p-5"><p className="text-xs text-muted-foreground">Menunggu validasi</p><p className="mt-2 text-3xl font-black">8</p></div></div><div className="mt-4 space-y-3">{[92,76,61,43,28,18,10].map((height,index)=><span key={height} className="inline-block w-[11%] rounded-t bg-primary/20 align-bottom first:bg-primary" style={{height:`${height}px`,marginRight:index===6?0:"3.8%"}} />)}</div><div className="mt-4 flex items-center justify-between border-t pt-4 text-sm"><span className="text-muted-foreground">Komisi terhitung</span><strong>Rp18.750.000</strong></div></Card></div></div></section><section className="mx-auto max-w-7xl px-4 py-20 sm:px-6"><div className="grid gap-5 md:grid-cols-3">{features.map(({icon:Icon,title,text})=><Card className="p-6" key={title}><span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary"><Icon /></span><h2 className="mt-5 text-lg font-bold">{title}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p></Card>)}</div></section></main><footer className="border-t py-8 text-center text-sm text-muted-foreground">© 2026 Kejar Target · Dibangun untuk tim sales Indonesia.</footer></div>;
+}
