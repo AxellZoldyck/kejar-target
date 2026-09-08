@@ -1,5 +1,5 @@
 import type { ActivityHistory, ActivityStatus, SalesActivity } from "@/types/domain";
-import { apiRequest, queryString } from "../browser-client";
+import { apiPaginatedList, apiRequest } from "../browser-client";
 
 export interface ActivityFilters {
   status?: ActivityStatus | "";
@@ -9,7 +9,7 @@ export interface ActivityFilters {
 
 export const activitiesApi = {
   list: (filters: ActivityFilters = {}) =>
-    apiRequest<SalesActivity[]>(`/sales-activities${queryString({ ...filters, per_page: 100 })}`),
+    apiPaginatedList<SalesActivity>("/sales-activities", { ...filters }),
   show: (id: string) => apiRequest<SalesActivity>(`/sales-activities/${id}`),
   history: (id: string) => apiRequest<ActivityHistory[]>(`/sales-activities/${id}/history`),
   create: (body: FormData) => apiRequest<SalesActivity>("/sales-activities", { method: "POST", body }),

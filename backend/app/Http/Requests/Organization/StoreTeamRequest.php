@@ -17,6 +17,14 @@ class StoreTeamRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:120'],
+            'name' => [
+                'required',
+                'string',
+                'max:120',
+                Rule::unique('teams', 'name')->where(
+                    fn ($query) => $query->where('company_id', $this->user()->company_id),
+                ),
+            ],
             'supervisor_id' => [
                 'sometimes',
                 'uuid',

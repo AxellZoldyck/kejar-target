@@ -21,12 +21,13 @@ class AssignTeamMemberAction
         }
 
         return DB::transaction(function () use ($team, $sales, $actor): TeamMember {
-            $this->closeCurrentMembership($sales, $actor);
+            $lockedSales = $this->lockSales($sales, $actor);
+            $this->closeCurrentMembership($lockedSales, $actor);
 
             return TeamMember::query()->create([
                 'company_id' => $actor->company_id,
                 'team_id' => $team->id,
-                'user_id' => $sales->id,
+                'user_id' => $lockedSales->id,
                 'joined_at' => now(),
                 'left_at' => null,
                 'active_slot' => 'active',
@@ -42,7 +43,19 @@ class AssignTeamMemberAction
             ]);
         }
 
-        DB::transaction(fn () => $this->closeCurrentMembership($sales, $actor));
+        DB::transaction(function () use ($sales, $actor): void {
+            $lockedSales = $this->lockSales($sales, $actor);
+            $this->closeCurrentMembership($lockedSales, $actor);
+        });
+    }
+
+    private function lockSales(User $sales, User $actor): User
+    {
+        return User::query()
+            ->where('company_id', $actor->company_id)
+            ->whereKey($sales->id)
+            ->lockForUpdate()
+            ->firstOrFail();
     }
 
     private function closeCurrentMembership(User $sales, User $actor): void

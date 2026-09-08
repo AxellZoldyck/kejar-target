@@ -11,6 +11,7 @@ use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -110,6 +111,23 @@ class SalesActivityLifecycleTest extends TestCase
                 'customer_reference' => 'CUST-WINDOW',
             ])->assertUnprocessable()->assertJsonValidationErrors('activity_date');
         }
+    }
+
+    public function test_review_action_rechecks_current_team_supervisor_and_tenant(): void
+    {
+        [$company, $originalSpv, $sales, $team, $product] = $this->scenario();
+        $replacementSpv = User::factory()->spv()->create(['company_id' => $company->id]);
+        $activity = SalesActivity::factory()->pending()->create([
+            'company_id' => $company->id,
+            'team_id' => $team->id,
+            'sales_id' => $sales->id,
+            'product_id' => $product->id,
+        ]);
+        $team->update(['supervisor_id' => $replacementSpv->id]);
+
+        $this->expectException(ModelNotFoundException::class);
+        app(\App\Actions\SalesActivity\ReviewSalesActivityAction::class)
+            ->reject($originalSpv, $activity, 'Tidak lagi berwenang');
     }
 
     /** @return array{Company, User, User, Team, Product} */

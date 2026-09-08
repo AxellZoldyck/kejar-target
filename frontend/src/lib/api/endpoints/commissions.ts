@@ -1,9 +1,9 @@
 import type { Commission, CommissionSetting } from "@/types/domain";
-import { apiRequest, queryString } from "../browser-client";
+import { apiPaginatedList, apiRequest } from "../browser-client";
 
 export const commissionsApi = {
   list: (params: { period?: string; sales_id?: string } = {}) =>
-    apiRequest<Commission[]>(`/commissions${queryString({ ...params, per_page: 100 })}`),
+    apiPaginatedList<Commission>("/commissions", { ...params }),
   show: (id: string) => apiRequest<Commission>(`/commissions/${id}`),
   calculate: (sales_id: string, period: string) =>
     apiRequest<Commission>("/commissions/calculate", { method: "POST", body: { sales_id, period } }),

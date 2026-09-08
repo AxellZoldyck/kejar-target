@@ -129,4 +129,16 @@ return Application::configure(basePath: dirname(__DIR__))
                 'errors' => (object) [],
             ], $status, $exception->getHeaders());
         });
+
+        $exceptions->render(function (Throwable $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan internal.',
+                'code' => 'INTERNAL_ERROR',
+                'errors' => (object) [],
+            ], 500);
+        });
     })->create();

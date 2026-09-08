@@ -1,10 +1,10 @@
 import type { AdminCompany, AdminSubscription, Payment } from "@/types/domain";
-import { apiRequest, queryString } from "../browser-client";
+import { apiPaginatedList, apiRequest } from "../browser-client";
 
 export const adminApi = {
-  companies: (search?: string) => apiRequest<AdminCompany[]>(`/admin/companies${queryString({ search, per_page: 100 })}`),
+  companies: (search?: string) => apiPaginatedList<AdminCompany>("/admin/companies", { search }),
   updateCompany: (id: string, input: { name?: string; status?: "active" | "inactive" }) =>
     apiRequest<AdminCompany>(`/admin/companies/${id}`, { method: "PATCH", body: input }),
-  subscriptions: (status?: string) => apiRequest<AdminSubscription[]>(`/admin/subscriptions${queryString({ status, per_page: 100 })}`),
-  payments: (status?: string) => apiRequest<Payment[]>(`/admin/payments${queryString({ status, per_page: 100 })}`),
+  subscriptions: (status?: string) => apiPaginatedList<AdminSubscription>("/admin/subscriptions", { status }),
+  payments: (status?: string) => apiPaginatedList<Payment>("/admin/payments", { status }),
 };

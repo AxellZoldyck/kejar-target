@@ -5,6 +5,7 @@ namespace App\Actions\SalesActivity;
 use App\Enums\SalesActivityStatus;
 use App\Models\SalesActivity;
 use App\Models\SalesActivityStatusHistory;
+use App\Models\Team;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\CommissionService;
@@ -50,7 +51,15 @@ class ReviewSalesActivityAction
         ?string $reason,
     ): SalesActivity {
         return DB::transaction(function () use ($reviewer, $activity, $to, $reason): SalesActivity {
-            $locked = SalesActivity::query()->lockForUpdate()->findOrFail($activity->id);
+            $locked = SalesActivity::query()
+                ->where('company_id', $reviewer->company_id)
+                ->lockForUpdate()
+                ->findOrFail($activity->id);
+            Team::query()
+                ->where('company_id', $reviewer->company_id)
+                ->where('supervisor_id', $reviewer->id)
+                ->lockForUpdate()
+                ->findOrFail($locked->team_id);
             $current = $locked->status instanceof SalesActivityStatus
                 ? $locked->status
                 : SalesActivityStatus::from($locked->status);

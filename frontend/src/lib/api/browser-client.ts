@@ -1,4 +1,4 @@
-import type { ApiEnvelope, ApiErrorBody } from "@/types/api";
+import type { ApiEnvelope, ApiErrorBody, PaginationMeta } from "@/types/api";
 import { ApiError } from "./api-error";
 import { csrfToken, ensureCsrf, resetCsrf } from "./csrf";
 import { endpointUrl } from "./config";
@@ -34,21 +34,21 @@ async function parseBody(response: Response): Promise<unknown> {
   }
 }
 
-export async function apiRequest<T>(
+async function apiEnvelopeRequest<T, M = Record<string, never>>(
   path: string,
   init: ApiRequestInit = {},
-): Promise<T> {
+): Promise<ApiEnvelope<T, M>> {
   const method = (init.method ?? "GET").toUpperCase();
   const isMutation = mutationMethods.has(method);
+  const { body, csrfRetry = true, ...requestInit } = init;
 
   if (isMutation && typeof window !== "undefined") {
     await ensureCsrf();
   }
 
-  const headers = new Headers(init.headers);
+  const headers = new Headers(requestInit.headers);
   headers.set("Accept", "application/json");
 
-  const body = init.body;
   let serializedBody: BodyInit | undefined;
 
   if (body !== undefined) {
@@ -66,7 +66,7 @@ export async function apiRequest<T>(
   }
 
   const response = await fetch(endpointUrl(path), {
-    ...init,
+    ...requestInit,
     method,
     body: serializedBody,
     headers,
@@ -74,10 +74,10 @@ export async function apiRequest<T>(
     cache: "no-store",
   });
 
-  if (response.status === 419 && init.csrfRetry !== false) {
+  if (response.status === 419 && csrfRetry) {
     resetCsrf();
     await ensureCsrf();
-    return apiRequest<T>(path, { ...init, csrfRetry: false });
+    return apiEnvelopeRequest<T, M>(path, { ...init, csrfRetry: false });
   }
 
   const payload = await parseBody(response);
@@ -86,9 +86,38 @@ export async function apiRequest<T>(
     throw ApiError.from(response.status, payload as Partial<ApiErrorBody> | null);
   }
 
-  if (response.status === 204) return undefined as T;
+  if (response.status === 204) {
+    return { data: undefined as T };
+  }
 
-  return (payload as ApiEnvelope<T>).data;
+  return payload as ApiEnvelope<T, M>;
+}
+
+export async function apiRequest<T>(
+  path: string,
+  init: ApiRequestInit = {},
+): Promise<T> {
+  return (await apiEnvelopeRequest<T>(path, init)).data;
+}
+
+export async function apiPaginatedList<T>(
+  path: string,
+  params: Record<string, string | number | undefined> = {},
+): Promise<T[]> {
+  const items: T[] = [];
+  let page = 1;
+  let lastPage = 1;
+
+  do {
+    const response = await apiEnvelopeRequest<T[], PaginationMeta>(
+      `${path}${queryString({ ...params, page, per_page: 100 })}`,
+    );
+    items.push(...response.data);
+    lastPage = response.meta?.last_page ?? page;
+    page += 1;
+  } while (page <= lastPage);
+
+  return items;
 }
 
 export function queryString(params: Record<string, string | number | undefined>) {
