@@ -18,7 +18,16 @@ const frontendOrigin = (
 export async function serverApiRequest<T>(path: string): Promise<T> {
   const cookieStore = await cookies();
   const response = await fetch(endpointUrl(path, internalApiUrl), {
-    headers: {
+    headers: 
+if (path === "/me") {
+  console.info("[auth/me]", {
+    status: response.status,
+    hasSessionCookie: cookieStore.has(
+      process.env.SESSION_COOKIE_NAME || "laravel-session"
+    ),
+  });
+}
+{
       Accept: "application/json",
       Cookie: cookieStore.toString(),
       // Sanctum classifies cookie requests from Origin/Referer. Server-side

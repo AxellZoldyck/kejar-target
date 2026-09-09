@@ -7,7 +7,11 @@ export function proxy(request: NextRequest) {
   if (!protectedRoute) return NextResponse.next();
 
   const cookieName = process.env.SESSION_COOKIE_NAME || "kejar_target_session";
-  if (!request.cookies.has(cookieName)) {
+  console.info("[auth/proxy]", {
+  path: request.nextUrl.pathname,
+  hasSessionCookie: request.cookies.has(cookieName),
+});
+if (!request.cookies.has(cookieName)) {
     const login = new URL("/login", request.url);
     login.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(login);
