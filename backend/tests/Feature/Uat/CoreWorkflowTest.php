@@ -80,11 +80,13 @@ class CoreWorkflowTest extends TestCase
         ])->assertOk();
         $this->putJson('/api/v1/commission-progressive-rules', [
             'rules' => [[
-                'product_id' => $productId,
-                'sequence_number' => 1,
+                'min_sa' => 1,
+                'max_sa' => 1,
                 'incentive_amount' => 25_000,
             ]],
-        ])->assertOk();
+        ])->assertOk()
+            ->assertJsonPath('data.progressive_rules.0.min_sa', 1)
+            ->assertJsonMissingPath('data.progressive_rules.0.product_id');
 
         $sales = User::query()->findOrFail($salesId);
         Sanctum::actingAs($sales);

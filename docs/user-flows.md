@@ -45,7 +45,7 @@
 
 1. Menentukan Product Fee per produk.
 2. Mengaktifkan/nonaktifkan Multiplier dan mengisi rentang.
-3. Mengaktifkan/nonaktifkan Progressive Incentive dan mengisi nilai per urutan.
+3. Mengaktifkan/nonaktifkan Progressive Incentive dan mengisi rentang urutan SA beserta insentif per SA tanpa memilih produk.
 4. Sistem memvalidasi overlap dan menyimpan versi aturan.
 5. Preview formula ditampilkan sebelum publish.
 

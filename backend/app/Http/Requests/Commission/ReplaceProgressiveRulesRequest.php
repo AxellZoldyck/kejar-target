@@ -16,8 +16,8 @@ class ReplaceProgressiveRulesRequest extends FormRequest
     {
         return [
             'rules' => ['required', 'array'],
-            'rules.*.product_id' => ['required', 'uuid'],
-            'rules.*.sequence_number' => ['required', 'integer', 'min:1', 'max:2147483647'],
+            'rules.*.min_sa' => ['required', 'integer', 'min:1', 'max:2147483647'],
+            'rules.*.max_sa' => ['nullable', 'integer', 'min:1', 'max:2147483647'],
             'rules.*.incentive_amount' => ['required', 'integer', 'min:0', 'max:9223372036854775807'],
         ];
     }

@@ -74,9 +74,10 @@ stateDiagram-v2
 
 ### Progressive Incentive
 
-- Dihitung menurut urutan SA tervalidasi per produk dalam satu periode.
-- Contoh: urutan 1 = 50k, urutan 2 = 50k, urutan 3 = 100k menghasilkan 200k.
-- Jika urutan melebihi tier terakhir, perilakunya wajib ditentukan oleh setting (`repeat_last` atau `zero`); default MVP `zero`.
+- Setiap SA tervalidasi bernilai 1 SA tanpa membedakan produk dan diurutkan secara global dalam satu periode.
+- Aturan berbentuk rentang urutan SA inklusif dengan nilai insentif per SA; rentang tidak boleh tumpang tindih.
+- Contoh: rentang SA ke-1–2 = 50k dan SA ke-3 = 100k menghasilkan 200k untuk 3 SA.
+- Jika urutan melebihi rentang terakhir, perilakunya wajib ditentukan oleh setting (`repeat_last` atau `zero`); default MVP `zero`.
 
 ### Snapshot dan idempotensi
 

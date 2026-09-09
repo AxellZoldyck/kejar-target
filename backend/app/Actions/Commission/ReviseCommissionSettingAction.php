@@ -72,7 +72,7 @@ class ReviseCommissionSettingAction
                 : []);
             $progressiveRows = $progressives ?? ($current
                 ? $current->progressiveRules->map(fn ($row) => $row->only([
-                    'product_id', 'sequence_number', 'incentive_amount',
+                    'min_sa', 'max_sa', 'incentive_amount',
                 ]))->all()
                 : []);
 
@@ -112,7 +112,7 @@ class ReviseCommissionSettingAction
                 after: ['version' => $setting->version],
             );
 
-            return $setting->load(['productFees.product', 'multiplierRules', 'progressiveRules.product']);
+            return $setting->load(['productFees.product', 'multiplierRules', 'progressiveRules']);
         });
     }
 
@@ -122,11 +122,8 @@ class ReviseCommissionSettingAction
         ?array $multipliers,
         ?array $progressives,
     ): void {
-        foreach ([$fees, $progressives] as $rows) {
-            if ($rows === null) {
-                continue;
-            }
-            $productIds = collect($rows)->pluck('product_id')->unique()->values();
+        if ($fees !== null) {
+            $productIds = collect($fees)->pluck('product_id')->unique()->values();
             $ownedCount = Product::query()
                 ->where('company_id', $company->id)
                 ->whereIn('id', $productIds)
@@ -138,13 +135,6 @@ class ReviseCommissionSettingAction
 
         if ($fees !== null && collect($fees)->pluck('product_id')->duplicates()->isNotEmpty()) {
             throw ValidationException::withMessages(['fees' => ['Satu produk hanya boleh memiliki satu Product Fee.']]);
-        }
-
-        if ($progressives !== null) {
-            $keys = collect($progressives)->map(fn ($row) => $row['product_id'].':'.$row['sequence_number']);
-            if ($keys->duplicates()->isNotEmpty()) {
-                throw ValidationException::withMessages(['rules' => ['Urutan progressive per produk harus unik.']]);
-            }
         }
 
         if ($multipliers !== null) {
@@ -159,6 +149,23 @@ class ReviseCommissionSettingAction
                     $previousMax = $previous['max_sa'] ?? PHP_INT_MAX;
                     if ($row['min_sa'] <= $previousMax) {
                         throw ValidationException::withMessages(['rules' => ['Rentang multiplier tidak boleh tumpang tindih.']]);
+                    }
+                }
+            }
+        }
+
+        if ($progressives !== null) {
+            $sorted = collect($progressives)->sortBy('min_sa')->values();
+            foreach ($sorted as $index => $row) {
+                $max = $row['max_sa'] ?? PHP_INT_MAX;
+                if ($max < $row['min_sa']) {
+                    throw ValidationException::withMessages(['rules' => ['max_sa harus lebih besar atau sama dengan min_sa.']]);
+                }
+                if ($index > 0) {
+                    $previous = $sorted[$index - 1];
+                    $previousMax = $previous['max_sa'] ?? PHP_INT_MAX;
+                    if ($row['min_sa'] <= $previousMax) {
+                        throw ValidationException::withMessages(['rules' => ['Rentang insentif progresif tidak boleh tumpang tindih.']]);
                     }
                 }
             }

@@ -118,14 +118,17 @@ class DemoSeeder extends Seeder
                 );
             }
 
-            foreach ([1 => 50_000, 2 => 50_000, 3 => 100_000] as $sequence => $amount) {
+            foreach ([[1, 1, 50_000], [2, 2, 50_000], [3, 3, 100_000]] as [$min, $max, $amount]) {
                 CommissionProgressiveRule::query()->updateOrCreate(
                     [
                         'commission_setting_id' => $setting->id,
-                        'product_id' => $productOne->id,
-                        'sequence_number' => $sequence,
+                        'min_sa' => $min,
                     ],
-                    ['company_id' => $company->id, 'incentive_amount' => $amount],
+                    [
+                        'company_id' => $company->id,
+                        'max_sa' => $max,
+                        'incentive_amount' => $amount,
+                    ],
                 );
             }
 

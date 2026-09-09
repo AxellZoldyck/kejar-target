@@ -45,9 +45,4 @@ class Product extends Model
     {
         return $this->hasMany(CommissionProductFee::class);
     }
-
-    public function commissionProgressiveRules(): HasMany
-    {
-        return $this->hasMany(CommissionProgressiveRule::class);
-    }
 }

@@ -121,9 +121,8 @@ export interface CommissionSetting {
   }>;
   progressive_rules: Array<{
     id: string;
-    product_id: string;
-    product_name: string | null;
-    sequence_number: number;
+    min_sa: number;
+    max_sa: number | null;
     incentive_amount: number;
   }>;
 }

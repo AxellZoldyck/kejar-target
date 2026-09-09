@@ -95,6 +95,8 @@ Contoh reject:
 | GET | `/commissions?period=&sales_id=` | Scoped |
 | GET | `/commissions/{commission}` | Breakdown |
 
+Payload aturan progresif: `rules: [{ min_sa, max_sa, incentive_amount }]`. Rentang SA bersifat global lintas produk dan inklusif.
+
 ## Leaderboard
 
 `GET /leaderboard?period=2026-09&scope=company|team`

@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\CommissionProgressiveRule;
 use App\Models\CommissionSetting;
-use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -16,8 +15,8 @@ class CommissionProgressiveRuleFactory extends Factory
         return [
             'company_id' => (string) Str::uuid(),
             'commission_setting_id' => CommissionSetting::factory(),
-            'product_id' => (string) Str::uuid(),
-            'sequence_number' => 1,
+            'min_sa' => 1,
+            'max_sa' => 1,
             'incentive_amount' => 50_000,
         ];
     }
@@ -29,10 +28,6 @@ class CommissionProgressiveRuleFactory extends Factory
 
             if ($setting) {
                 $rule->company_id = $setting->company_id;
-                $product = Product::query()->find($rule->product_id)
-                    ?? Product::factory()->create(['company_id' => $setting->company_id]);
-                $product->forceFill(['company_id' => $setting->company_id])->save();
-                $rule->product_id = $product->id;
             }
         });
     }

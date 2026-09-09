@@ -51,7 +51,7 @@
 - [ ] Commission settings/versioning.
 - [ ] Product Fee rules.
 - [ ] Multiplier rules dan validasi overlap.
-- [ ] Progressive rules per produk/sequence.
+- [ ] Progressive rules berdasarkan rentang SA global lintas produk.
 - [ ] CommissionService idempotent dan snapshot.
 - [ ] Breakdown komisi serta test boundary.
 

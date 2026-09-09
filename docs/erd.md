@@ -97,8 +97,8 @@ erDiagram
 
 ### commission_progressive_rules
 
-- `id`, `company_id`, `commission_setting_id`, `product_id`
-- `sequence_number`, `incentive_amount`
+- `id`, `company_id`, `commission_setting_id`
+- `min_sa`, `max_sa`, `incentive_amount`
 
 ### commissions
 

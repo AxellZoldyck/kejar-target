@@ -14,6 +14,6 @@ export const commissionsApi = {
     apiRequest<CommissionSetting>("/commission-product-fees", { method: "PUT", body: { fees } }),
   replaceMultipliers: (rules: Array<{ min_sa: number; max_sa: number | null; multiplier_value: string }>) =>
     apiRequest<CommissionSetting>("/commission-multiplier-rules", { method: "PUT", body: { rules } }),
-  replaceProgressives: (rules: Array<{ product_id: string; sequence_number: number; incentive_amount: number }>) =>
+  replaceProgressives: (rules: Array<{ min_sa: number; max_sa: number | null; incentive_amount: number }>) =>
     apiRequest<CommissionSetting>("/commission-progressive-rules", { method: "PUT", body: { rules } }),
 };

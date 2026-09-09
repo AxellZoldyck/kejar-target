@@ -66,8 +66,7 @@ class CommissionSetting extends Model
     public function progressiveRules(): HasMany
     {
         return $this->hasMany(CommissionProgressiveRule::class)
-            ->orderBy('product_id')
-            ->orderBy('sequence_number');
+            ->orderBy('min_sa');
     }
 
     public function auditLogs(): MorphMany

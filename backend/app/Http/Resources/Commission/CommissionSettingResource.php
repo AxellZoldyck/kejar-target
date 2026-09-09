@@ -36,9 +36,8 @@ class CommissionSettingResource extends JsonResource
             ])->values()),
             'progressive_rules' => $this->whenLoaded('progressiveRules', fn () => $this->progressiveRules->map(fn ($rule) => [
                 'id' => $rule->id,
-                'product_id' => $rule->product_id,
-                'product_name' => $rule->relationLoaded('product') ? $rule->product?->name : null,
-                'sequence_number' => (int) $rule->sequence_number,
+                'min_sa' => (int) $rule->min_sa,
+                'max_sa' => $rule->max_sa === null ? null : (int) $rule->max_sa,
                 'incentive_amount' => (int) $rule->incentive_amount,
             ])->values()),
         ];

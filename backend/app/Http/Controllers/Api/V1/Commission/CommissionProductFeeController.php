@@ -33,7 +33,7 @@ class CommissionProductFeeController extends ApiController
         return CommissionSetting::query()
             ->where('company_id', $request->user()->company_id)
             ->where('active_slot', 'active')
-            ->with(['productFees.product', 'multiplierRules', 'progressiveRules.product'])
+            ->with(['productFees.product', 'multiplierRules', 'progressiveRules'])
             ->first();
     }
 }

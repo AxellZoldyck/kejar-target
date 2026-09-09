@@ -34,10 +34,8 @@ class CommissionServiceTest extends TestCase
             ['min_sa' => 1, 'max_sa' => 2, 'multiplier_value' => '1.0000'],
             ['min_sa' => 3, 'max_sa' => 5, 'multiplier_value' => '1.5000'],
         ], [
-            ['product_id' => $productA->id, 'sequence_number' => 1, 'incentive_amount' => 50_000],
-            ['product_id' => $productA->id, 'sequence_number' => 2, 'incentive_amount' => 50_000],
-            ['product_id' => $productA->id, 'sequence_number' => 3, 'incentive_amount' => 100_000],
-            ['product_id' => $productB->id, 'sequence_number' => 1, 'incentive_amount' => 25_000],
+            ['min_sa' => 1, 'max_sa' => 2, 'incentive_amount' => 50_000],
+            ['min_sa' => 3, 'max_sa' => 4, 'incentive_amount' => 100_000],
         ]);
 
         $this->activities($company, $spv, $sales, $team, $productA, 3);
@@ -48,9 +46,14 @@ class CommissionServiceTest extends TestCase
 
         $this->assertSame(250_000, $commission->product_fee_amount);
         $this->assertSame('1.5000', $commission->multiplier_value);
-        $this->assertSame(225_000, $commission->progressive_incentive_amount);
-        $this->assertSame(600_000, $commission->total_amount);
+        $this->assertSame(300_000, $commission->progressive_incentive_amount);
+        $this->assertSame(675_000, $commission->total_amount);
         $this->assertCount(4, $commission->formula_snapshot['validated_activity_ids']);
+        $this->assertSame('2.0', $commission->formula_snapshot['formula_version']);
+        $this->assertSame(
+            [1, 2, 3, 4],
+            array_column($commission->formula_snapshot['progressive']['entries'], 'sequence_number'),
+        );
     }
 
     public function test_disabled_rules_default_multiplier_to_one_and_no_progressive(): void
@@ -62,7 +65,7 @@ class CommissionServiceTest extends TestCase
             'progressive_overflow_behavior' => 'zero',
         ], [['product_id' => $productA->id, 'fee_amount' => 50_000]], [
             ['min_sa' => 1, 'max_sa' => null, 'multiplier_value' => '2.0000'],
-        ], [['product_id' => $productA->id, 'sequence_number' => 1, 'incentive_amount' => 99_000]]);
+        ], [['min_sa' => 1, 'max_sa' => 1, 'incentive_amount' => 99_000]]);
         $this->activities($company, $spv, $sales, $team, $productA, 1);
 
         $commission = app(CommissionService::class)->calculate($company, $sales, now()->format('Y-m'));
@@ -99,8 +102,8 @@ class CommissionServiceTest extends TestCase
             'progressive_enabled' => true,
             'progressive_overflow_behavior' => 'zero',
         ], [['product_id' => $productA->id, 'fee_amount' => 0]], [], [
-            ['product_id' => $productA->id, 'sequence_number' => 1, 'incentive_amount' => 10_000],
-            ['product_id' => $productA->id, 'sequence_number' => 2, 'incentive_amount' => 20_000],
+            ['min_sa' => 1, 'max_sa' => 1, 'incentive_amount' => 10_000],
+            ['min_sa' => 2, 'max_sa' => 2, 'incentive_amount' => 20_000],
         ]);
         $this->activities($company, $spv, $sales, $team, $productA, 4);
         $period = now()->format('Y-m');
@@ -113,6 +116,17 @@ class CommissionServiceTest extends TestCase
 
         $this->assertSame(70_000, $repeat->total_amount);
         $this->assertNotSame($zero->calculation_version, $repeat->calculation_version);
+    }
+
+    public function test_progressive_ranges_must_not_overlap(): void
+    {
+        [, $spv] = $this->scenario();
+
+        $this->expectException(ValidationException::class);
+        app(ReviseCommissionSettingAction::class)->execute($spv, progressives: [
+            ['min_sa' => 1, 'max_sa' => 3, 'incentive_amount' => 10_000],
+            ['min_sa' => 3, 'max_sa' => 5, 'incentive_amount' => 20_000],
+        ]);
     }
 
     public function test_multiplier_boundaries_no_match_and_inactive_historical_product(): void

@@ -73,8 +73,8 @@ Formula utama:
 
 - Product Fee ditentukan per produk.
 - Multiplier dapat dinonaktifkan; jika aktif dipilih berdasarkan jumlah SA tervalidasi.
-- Progressive Incentive dapat dinonaktifkan; jika aktif dihitung berdasarkan urutan SA per produk dalam periode.
-- Contoh tier progresif: SA #1 Rp50.000, SA #2 Rp50.000, SA #3 Rp100.000; total progresif untuk 3 SA = Rp200.000.
+- Progressive Incentive dapat dinonaktifkan; jika aktif dihitung berdasarkan urutan seluruh SA tervalidasi dalam periode tanpa membedakan produk. Setiap SA bernilai 1, apa pun produknya.
+- Aturan progresif berupa rentang urutan SA inklusif dan nilai insentif per SA. Contoh: SA ke-1–2 Rp50.000 dan SA ke-3 Rp100.000 menghasilkan total progresif Rp200.000 untuk 3 SA.
 - Hasil disimpan sebagai snapshot per sales dan periode.
 
 ## 8. Leaderboard dan gamification

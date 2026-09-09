@@ -17,15 +17,16 @@ class CommissionProgressiveRule extends Model
     protected $fillable = [
         'company_id',
         'commission_setting_id',
-        'product_id',
-        'sequence_number',
+        'min_sa',
+        'max_sa',
         'incentive_amount',
     ];
 
     protected function casts(): array
     {
         return [
-            'sequence_number' => 'integer',
+            'min_sa' => 'integer',
+            'max_sa' => 'integer',
             'incentive_amount' => 'integer',
         ];
     }
@@ -40,8 +41,9 @@ class CommissionProgressiveRule extends Model
         return $this->belongsTo(CommissionSetting::class);
     }
 
-    public function product(): BelongsTo
+    public function matches(int $sequenceNumber): bool
     {
-        return $this->belongsTo(Product::class);
+        return $sequenceNumber >= $this->min_sa
+            && ($this->max_sa === null || $sequenceNumber <= $this->max_sa);
     }
 }

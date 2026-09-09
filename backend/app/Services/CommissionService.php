@@ -6,6 +6,7 @@ use App\Enums\ProgressiveOverflowBehavior;
 use App\Enums\SalesActivityStatus;
 use App\Models\Commission;
 use App\Models\CommissionMultiplierRule;
+use App\Models\CommissionProgressiveRule;
 use App\Models\CommissionSetting;
 use App\Models\Company;
 use App\Models\SalesActivity;
@@ -19,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 
 class CommissionService
 {
-    public const FORMULA_VERSION = '1.0';
+    public const FORMULA_VERSION = '2.0';
 
     public function __construct(private readonly AuditLogger $audit) {}
 
@@ -99,7 +100,7 @@ class CommissionService
             ]);
         }
 
-        $setting->loadMissing(['productFees.product', 'multiplierRules', 'progressiveRules.product']);
+        $setting->loadMissing(['productFees.product', 'multiplierRules', 'progressiveRules']);
 
         /** @var Collection<int, SalesActivity> $activities */
         $activities = SalesActivity::query()
@@ -109,7 +110,6 @@ class CommissionService
             ->whereDate('activity_date', '>=', $range->startDate())
             ->whereDate('activity_date', '<=', $range->endDate())
             ->with('product:id,name,code,is_active,product_fee_amount')
-            ->orderBy('product_id')
             ->orderBy('activity_date')
             ->orderBy('validated_at')
             ->orderBy('id')
@@ -150,28 +150,31 @@ class CommissionService
         $progressiveTotal = 0;
         $progressiveBreakdown = [];
         if ($setting->progressive_enabled) {
-            $rulesByProduct = $setting->progressiveRules->groupBy('product_id');
-            foreach ($activities->groupBy('product_id') as $productId => $productActivities) {
-                $rules = $rulesByProduct->get($productId, collect())->keyBy('sequence_number');
-                $lastRule = $rules->sortKeys()->last();
-                $productTotal = 0;
-                foreach ($productActivities->values() as $index => $activity) {
-                    $sequence = $index + 1;
-                    $rule = $rules->get($sequence);
-                    if (! $rule
-                        && $setting->progressive_overflow_behavior === ProgressiveOverflowBehavior::REPEAT_LAST) {
-                        $rule = $lastRule;
-                    }
-                    $incentive = (int) ($rule?->incentive_amount ?? 0);
-                    $productTotal = MoneyMath::add($productTotal, $incentive);
-                    $progressiveBreakdown[] = [
-                        'activity_id' => $activity->id,
-                        'product_id' => $productId,
-                        'sequence_number' => $sequence,
-                        'incentive_amount' => $incentive,
-                    ];
+            $rules = $setting->progressiveRules;
+            /** @var CommissionProgressiveRule|null $lastRule */
+            $lastRule = $rules->last();
+            foreach ($activities->values() as $index => $activity) {
+                $sequence = $index + 1;
+                /** @var CommissionProgressiveRule|null $rule */
+                $rule = $rules->first(fn (CommissionProgressiveRule $candidate) => $candidate->matches($sequence));
+                if (! $rule
+                    && $lastRule
+                    && $lastRule->max_sa !== null
+                    && $sequence > $lastRule->max_sa
+                    && $setting->progressive_overflow_behavior === ProgressiveOverflowBehavior::REPEAT_LAST) {
+                    $rule = $lastRule;
                 }
-                $progressiveTotal = MoneyMath::add($progressiveTotal, $productTotal);
+                $incentive = (int) ($rule?->incentive_amount ?? 0);
+                $progressiveTotal = MoneyMath::add($progressiveTotal, $incentive);
+                $progressiveBreakdown[] = [
+                    'activity_id' => $activity->id,
+                    'product_id' => $activity->product_id,
+                    'sequence_number' => $sequence,
+                    'rule_id' => $rule?->id,
+                    'rule_min_sa' => $rule?->min_sa,
+                    'rule_max_sa' => $rule?->max_sa,
+                    'incentive_amount' => $incentive,
+                ];
             }
         }
 
@@ -237,7 +240,7 @@ class CommissionService
             // A historical calculation uses the newest version that had
             // become effective by the end of that calendar period.
             ->where('effective_from', '<=', $range->end->utc())
-            ->with(['productFees.product', 'multiplierRules', 'progressiveRules.product'])
+            ->with(['productFees.product', 'multiplierRules', 'progressiveRules'])
             ->latest('effective_from')
             ->latest('version')
             ->first();
